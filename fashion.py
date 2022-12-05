@@ -1,6 +1,7 @@
-import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
+
+import tensorflow as tf
 
 # print(tf.__version__)
 
@@ -32,14 +33,14 @@ test_images = test_images / 255.0
 # plt.show()
 
 model = tf.keras.Sequential([
-    tf.keras.layers.Flatten(input_shape=(28, 28)),
-    tf.keras.layers.Dense(128, activation='relu'),
-    tf.keras.layers.Dense(10)
+  tf.keras.layers.Flatten(input_shape=(28, 28)),
+  tf.keras.layers.Dense(128, activation='relu'),
+  tf.keras.layers.Dense(10)
 ])
 
 model.compile(optimizer='adam',
-    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-    metrics=['accuracy'])
+  loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+  metrics=['accuracy'])
 
 model.fit(train_images, train_labels, epochs=10)
 
@@ -64,9 +65,8 @@ def plot_image(i, predictions_array, true_label, img):
   else:
     color = 'red'
   plt.xlabel("{} {:2.0f}% ({})".format(class_names[predicted_label],
-                                100*np.max(predictions_array),
-                                class_names[true_label]),
-                                color=color)
+    100*np.max(predictions_array), class_names[true_label]),
+    color=color)
 
 def plot_value_array(i, predictions_array, true_label):
   true_label = true_label[i]
@@ -81,14 +81,14 @@ def plot_value_array(i, predictions_array, true_label):
 
 # Plot the first X test images, their predicted labels, and the true labels.
 # Color correct predictions in blue and incorrect predictions in red.
-num_rows = 5
-num_cols = 3
-num_images = num_rows*num_cols
-plt.figure(figsize=(2*2*num_cols, 2*num_rows))
-for i in range(num_images):
-  plt.subplot(num_rows, 2*num_cols, 2*i+1)
+NUM_ROWS = 5
+NUM_COLS = 3
+NUM_IMAGES = NUM_ROWS * NUM_COLS
+plt.figure(figsize=(2 * 2 * NUM_COLS, 2 * NUM_ROWS))
+for i in range(NUM_IMAGES):
+  plt.subplot(NUM_ROWS, 2 * NUM_COLS, 2 * i + 1)
   plot_image(i, predictions[i], test_labels, test_images)
-  plt.subplot(num_rows, 2*num_cols, 2*i+2)
+  plt.subplot(NUM_ROWS, 2 * NUM_COLS, 2 * i + 2)
   plot_value_array(i, predictions[i], test_labels)
 
 plt.tight_layout()
