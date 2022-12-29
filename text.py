@@ -25,3 +25,18 @@ print(os.listdir(train_dir))
 # with open(sample_file) as f:
     # print(f.read())
 
+# Create validation split
+batch_size = 32
+seed = 42
+
+raw_train_ds = tf.keras.utils.text_dataset_from_directory(
+    'aclImdb/train',
+    batch_size=batch_size,
+    validation_split=0.2,
+    subset='training',
+    seed=seed)
+
+raw_test_ds = tf.keras.utils.text_dataset_from_directory(
+    'aclImdb/test',
+    batch_size=batch_size)
+
