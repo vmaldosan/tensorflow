@@ -34,11 +34,21 @@ raw_train_ds = tf.keras.utils.text_dataset_from_directory(
     batch_size=batch_size,
     validation_split=0.2,
     subset='training',
-    seed=seed)
+    seed=seed
+)
+
+raw_val_ds = tf.keras.utils.text_dataset_from_directory(
+    'aclImdb/train',
+    batch_size=batch_size,
+    validation_split=0.2,
+    subset='validation',
+    seed=seed
+)
 
 raw_test_ds = tf.keras.utils.text_dataset_from_directory(
     'aclImdb/test',
-    batch_size=batch_size)
+    batch_size=batch_size
+)
 
 def custom_standardization(input_data):
     lowercase = tf.strings.lower(input_data)
@@ -64,8 +74,18 @@ def vectorize_text(text, label):
     return vectorize_layer(text), label
 
 # retrieve a batch (of 32 reviews and labels) from the dataset
-text_batch, label_batch = next(iter(raw_train_ds))
-first_review, first_label = text_batch[0], label_batch[0]
-print('Review: ', first_review)
-print('Label: ', raw_train_ds.class_names[first_label])
-print('Vectorized review: ', vectorize_text(first_review, first_label))
+# text_batch, label_batch = next(iter(raw_train_ds))
+# first_review, first_label = text_batch[0], label_batch[0]
+# print('Review: ', first_review)
+# print('Label: ', raw_train_ds.class_names[first_label])
+# print('Vectorized review: ', vectorize_text(first_review, first_label))
+
+train_ds = raw_train_ds.map(vectorize_text)
+val_ds = raw_val_ds.map(vectorize_text)
+test_ds = raw_test_ds.map(vectorize_text)
+
+AUTOTUNE = tf.data.AUTOTUNE
+
+train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
+val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
+test_ds = test_ds.cache().prefetch(buffer_size=AUTOTUNE)
