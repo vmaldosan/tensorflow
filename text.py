@@ -1,7 +1,22 @@
+###################################################################################################
+# 
+# This notebook trains a sentiment analysis model to classify 50K movie reviews from Imdb as
+# positive or negative. These reviews are split into 20K reviews for training, 5K for validation
+# and 25K for testing. Both training and test sets are balanced (equal number of positive and 
+# negative reviews).
+# Steps:
+# 1. (once) Download text dataset
+# 2. (once) Remove unnecessary folders
+# 3. Load raw train, validation (80:20 split) and test datasets
+# 4. Standardize, tokenize and vectorize data
+# 5. Configure dataset for perfomance: cache and prefetch
+# 6. Create neural network
+#
+###################################################################################################
+ 
 import matplotlib.pyplot as plt
 import os
 import re
-import shutil
 import string
 import tensorflow as tf
 
@@ -26,28 +41,28 @@ print(os.listdir(train_dir))
     # print(f.read())
 
 # Create validation split
-batch_size = 32
-seed = 42
+BATCH_SIZE = 32
+SEED = 42
 
 raw_train_ds = tf.keras.utils.text_dataset_from_directory(
     'aclImdb/train',
-    batch_size=batch_size,
+    batch_size=BATCH_SIZE,
     validation_split=0.2,
     subset='training',
-    seed=seed
+    seed=SEED
 )
 
 raw_val_ds = tf.keras.utils.text_dataset_from_directory(
     'aclImdb/train',
-    batch_size=batch_size,
+    batch_size=BATCH_SIZE,
     validation_split=0.2,
     subset='validation',
-    seed=seed
+    seed=SEED
 )
 
 raw_test_ds = tf.keras.utils.text_dataset_from_directory(
     'aclImdb/test',
-    batch_size=batch_size
+    batch_size=BATCH_SIZE
 )
 
 def custom_standardization(input_data):
@@ -55,14 +70,14 @@ def custom_standardization(input_data):
     stripped_html = tf.strings.regex_replace(lowercase, '<br />', ' ')
     return tf.strings.regex_replace(stripped_html, '[%s]' % re.escape(string.punctuation), '')
 
-max_features = 10000
-sequence_length = 250
+MAX_FEATURES = 10000
+SEQUENCE_LENGTH = 250
 
 vectorize_layer = layers.TextVectorization(
     standardize=custom_standardization,
-    max_tokens=max_features,
+    max_tokens=MAX_FEATURES,
     output_mode='int',
-    output_sequence_length=sequence_length
+    output_sequence_length=SEQUENCE_LENGTH
 )
 
 # Make a text-only dataset (without labels), then call adapt
@@ -89,3 +104,14 @@ AUTOTUNE = tf.data.AUTOTUNE
 train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
 val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 test_ds = test_ds.cache().prefetch(buffer_size=AUTOTUNE)
+
+EMBEDDING_DIM = 16
+
+model = tf.keras.Sequential([
+    layers.Embedding(MAX_FEATURES + 1, EMBEDDING_DIM),
+    layers.Dropout(0.2),
+    layers.GlobalAveragePooling1D(),
+    layers.Dropout(0.2),
+    layers.Dense(1)
+])
+model.summary()
