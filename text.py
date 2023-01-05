@@ -11,6 +11,9 @@
 # 4. Standardize, tokenize and vectorize data
 # 5. Configure dataset for perfomance: cache and prefetch
 # 6. Create neural network
+# 7. Use a loss function and an optimizer
+# 8. Train the model
+# 9. Evaluate the model
 #
 ###################################################################################################
  
@@ -115,3 +118,19 @@ model = tf.keras.Sequential([
     layers.Dense(1)
 ])
 model.summary()
+
+model.compile(loss=losses.BinaryCrossentropy(from_logits=True),
+    optimizer='adam',
+    metrics=tf.metrics.BinaryAccuracy(threshold=0.0)
+)
+
+EPOCHS = 10
+history = model.fit(
+    train_ds,
+    validation_data=val_ds,
+    epochs=EPOCHS
+)
+
+loss, accuracy = model.evaluate(test_ds)
+print('Loss: ', loss)
+print('Accuracy: ', accuracy)
