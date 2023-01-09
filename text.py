@@ -6,15 +6,15 @@
 # negative reviews).
 # Steps:
 # 1. (once) Download text dataset
-# 2. (once) Remove unnecessary folders
-# 3. Load raw train, validation (80:20 split) and test datasets
-# 4. Standardize, tokenize and vectorize data
-# 5. Configure dataset for perfomance: cache and prefetch
-# 6. Create neural network
-# 7. Use a loss function and an optimizer
-# 8. Train the model
-# 9. Evaluate the model
-# 10. Create a plot of accuracy and loss over time
+# 2. Load raw train, validation (80:20 split) and test datasets
+# 3. Standardize, tokenize and vectorize data
+# 4. Configure dataset for perfomance: cache and prefetch
+# 5. Create neural network
+# 6. Use a loss function and an optimizer
+# 7. Train the model
+# 8. Evaluate the model
+# 9. Create a plot of accuracy and loss over time
+# 10. Export the model
 #
 ###################################################################################################
  
@@ -30,6 +30,8 @@ from tensorflow.keras import losses
 
 # print (tf.__version__)
 
+# 1. (once) Download text dataset
+
 # url = "https://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz"
 
 # dataset = tf.keras.utils.get_file("aclImdb_v1", url, untar=True, cache_dir='.', cache_subdir='')
@@ -44,7 +46,8 @@ print(os.listdir(train_dir))
 # with open(sample_file) as f:
     # print(f.read())
 
-# Create validation split
+# 2. Load raw train, validation (80:20 split) and test datasets
+
 BATCH_SIZE = 32
 SEED = 42
 
@@ -68,6 +71,8 @@ raw_test_ds = tf.keras.utils.text_dataset_from_directory(
     'aclImdb/test',
     batch_size=BATCH_SIZE
 )
+
+# 3. Standardize, tokenize and vectorize data
 
 def custom_standardization(input_data):
     lowercase = tf.strings.lower(input_data)
@@ -103,11 +108,15 @@ train_ds = raw_train_ds.map(vectorize_text)
 val_ds = raw_val_ds.map(vectorize_text)
 test_ds = raw_test_ds.map(vectorize_text)
 
+# 4. Configure dataset for perfomance: cache and prefetch
+
 AUTOTUNE = tf.data.AUTOTUNE
 
 train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
 val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 test_ds = test_ds.cache().prefetch(buffer_size=AUTOTUNE)
+
+# 5. Create neural network
 
 EMBEDDING_DIM = 16
 
@@ -120,10 +129,14 @@ model = tf.keras.Sequential([
 ])
 model.summary()
 
+# 6. Use a loss function and an optimizer
+
 model.compile(loss=losses.BinaryCrossentropy(from_logits=True),
     optimizer='adam',
     metrics=tf.metrics.BinaryAccuracy(threshold=0.0)
 )
+
+# 7. Train the model
 
 EPOCHS = 10
 history = model.fit(
@@ -132,34 +145,59 @@ history = model.fit(
     epochs=EPOCHS
 )
 
+# 8. Evaluate the model
+
 loss, accuracy = model.evaluate(test_ds)
 print('Loss: ', loss)
 print('Accuracy: ', accuracy)
 
-# Create a plot of accuracy and loss over time
-history_dict = history.history
-# print(history_dict.keys())
-acc = history_dict['binary_accuracy']
-val_acc = history_dict['val_binary_accuracy']
-loss = history_dict['loss']
-val_loss = history_dict['val_loss']
+# 9. Create a plot of accuracy and loss over time
+# history_dict = history.history
+# # print(history_dict.keys())
+# acc = history_dict['binary_accuracy']
+# val_acc = history_dict['val_binary_accuracy']
+# loss = history_dict['loss']
+# val_loss = history_dict['val_loss']
 
-epochs = range(1, len(acc) + 1)
+# epochs = range(1, len(acc) + 1)
 
-# "bo" is for "blue dot"
-plt.plot(epochs, loss, 'bo', label='Training loss')
-# b is for "solid blue line"
-plt.plot(epochs, val_loss, 'b', label='Validation loss')
-plt.title('Training and validation loss')
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.legend()
-plt.show()
+# # "bo" is for "blue dot"
+# plt.plot(epochs, loss, 'bo', label='Training loss')
+# # b is for "solid blue line"
+# plt.plot(epochs, val_loss, 'b', label='Validation loss')
+# plt.title('Training and validation loss')
+# plt.xlabel('Epochs')
+# plt.ylabel('Loss')
+# plt.legend()
+# plt.show()
 
-plt.plot(epochs, acc, 'bo', label='Training acc')
-plt.plot(epochs, val_acc, 'b', label='Validation acc')
-plt.title('Training and validation accuracy')
-plt.xlabel('Epochs')
-plt.ylabel('Accuracy')
-plt.legend(loc='lower right')
-plt.show()
+# plt.plot(epochs, acc, 'bo', label='Training acc')
+# plt.plot(epochs, val_acc, 'b', label='Validation acc')
+# plt.title('Training and validation accuracy')
+# plt.xlabel('Epochs')
+# plt.ylabel('Accuracy')
+# plt.legend(loc='lower right')
+# plt.show()
+
+# 10. Export the model
+
+export_model = tf.keras.Sequential([
+    vectorize_layer,
+    model,
+    layers.Activation('sigmoid')
+])
+export_model.compile(
+    loss=losses.BinaryCrossentropy(from_logits=False), optimizer='adam', metrics=['accuracy']
+)
+
+# Test it with `raw_test_ds`, which yields raw strings
+loss, accuracy = export_model.evaluate(raw_test_ds)
+print(accuracy)
+
+examples = [
+  "The movie was great!",
+  "The movie was okay.",
+  "The movie was terrible..."
+]
+
+export_model.predict(examples)
