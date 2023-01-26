@@ -43,3 +43,8 @@ def get_mae(max_leaf_nodes, train_X, val_X, train_y, val_y):
 for max_leaf_nodes in [5, 50, 500, 5000]:
     my_mae = get_mae(max_leaf_nodes, train_X, val_X, train_y, val_y)
     print('Max leaf nodes: %d \t\t MAE: %d' %(max_leaf_nodes, my_mae))
+
+# Shorter version
+scores = {leaf_size: get_mae(leaf_size, train_X, val_X, train_y, val_y) for leaf_size in [5, 50, 500, 5000]}
+best_tree_size = min(scores, key=scores.get)
+print(best_tree_size)
