@@ -43,3 +43,15 @@ reduced_X_valid = X_valid.drop(cols_with_missing, axis=1)
 
 print("MAE (Drop columns with missing values):")
 print(score_dataset(reduced_X_train, reduced_X_valid, y_train, y_valid))
+
+# Preprocess train data
+my_imputer = SimpleImputer()
+final_X_train = pd.DataFrame(my_imputer.fit_transform(X_train))
+final_X_valid = pd.DataFrame(my_imputer.transform(X_valid))
+
+# Imputation removed column names; put them back
+final_X_train.columns = X_train.columns
+final_X_valid.columns = X_valid.columns
+
+print("MAE (Imputation):")
+print(score_dataset(final_X_train, final_X_valid, y_train, y_valid))
